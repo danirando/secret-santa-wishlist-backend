@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('wishlists', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
-            $table->string('owner_name');
+            $table->string('uuid')->unique();
+            $table->string('title');
+            $table->string('owner_name')->nullable();
+            $table->boolean('is_published')->default(false);
             $table->timestamps();
         });
     }

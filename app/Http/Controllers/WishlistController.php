@@ -22,6 +22,7 @@ class WishlistController extends Controller
             // 1. VALIDAZIONE: Controlla che i dati principali siano presenti
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
+                'owner_name' => 'nullable|string|max:255',
                 'gifts' => 'required|array',
                 'gifts.*.name' => 'required|string|max:255',
                 'gifts.*.price' => 'nullable|numeric|min:0',
@@ -32,7 +33,8 @@ class WishlistController extends Controller
             // 2. CREAZIONE WISHLIST
             $wishlist = Wishlist::create([
                 'title' => $validatedData['title'],
-                'secret_token' => (string) Str::uuid(), // Genera l'UUID segreto
+                'owner_name' => $validatedData['owner_name'] ?? null,
+                'uuid' => (string) Str::uuid(), // Genera l'UUID segreto
                 'is_published' => true,
             ]);
 
@@ -53,8 +55,8 @@ class WishlistController extends Controller
             // 4. RISPOSTA AL FRONTEND: Restituisce il token segreto
             return response()->json([
                 'message' => 'Wishlist creata e pubblicata!',
-                'token' => $wishlist->secret_token,
-                'secret_link' => url("/wishlist/{$wishlist->secret_token}"), 
+                'token' => $wishlist->uuid,
+                'secret_link' => url("/wishlist/{$wishlist->uuid}"), 
             ], 201);
 
         } catch (ValidationException $e) {
@@ -62,7 +64,11 @@ class WishlistController extends Controller
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Impossibile salvare la wishlist.'], 500);
+            return response()->json([
+                'error' => 'Impossibile salvare la wishlist.',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
     }
 
@@ -73,7 +79,7 @@ class WishlistController extends Controller
     public function showOwnerView($token)
     {
         // Cerca la Wishlist tramite il token segreto (o fallisce con 404)
-        $wishlist = Wishlist::where('secret_token', $token)->firstOrFail();
+        $wishlist = Wishlist::where('uuid', $token)->firstOrFail();
 
         // Carica i regali con tutti i dettagli di prenotazione
         $gifts = $wishlist->gifts->map(function ($gift) {
@@ -92,7 +98,8 @@ class WishlistController extends Controller
         return response()->json([
             'id' => $wishlist->id,
             'title' => $wishlist->title,
-            'secret_token' => $wishlist->secret_token,
+            'owner_name' => $wishlist->owner_name,
+            'secret_token' => $wishlist->uuid,
             'is_published' => $wishlist->is_published,
             'gifts' => $gifts,
         ]);
@@ -105,7 +112,7 @@ class WishlistController extends Controller
     public function showPublicView($token)
     {
         // Cerca la Wishlist pubblicata
-        $wishlist = Wishlist::where('secret_token', $token)
+        $wishlist = Wishlist::where('uuid', $token)
                             ->where('is_published', true)
                             ->firstOrFail();
 
@@ -124,6 +131,7 @@ class WishlistController extends Controller
 
         return response()->json([
             'title' => $wishlist->title,
+            'owner_name' => $wishlist->owner_name,
             'gifts' => $gifts,
         ]);
     }
@@ -138,7 +146,7 @@ class WishlistController extends Controller
             DB::beginTransaction();
             
             // 1. Cerca la Wishlist
-            $wishlist = Wishlist::where('secret_token', $token)->firstOrFail();
+            $wishlist = Wishlist::where('uuid', $token)->firstOrFail();
 
             // 2. Validazione (simile a store, ma solo per i dati che si possono aggiornare)
             $validatedData = $request->validate([
@@ -197,7 +205,7 @@ class WishlistController extends Controller
     public function destroy($token)
     {
         // 1. Cerca la Wishlist
-        $wishlist = Wishlist::where('secret_token', $token)->firstOrFail();
+        $wishlist = Wishlist::where('uuid', $token)->firstOrFail();
 
         // 2. Elimina (Laravel gestirà le cascate, se definite nelle migrazioni)
         $wishlist->delete();
