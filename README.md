@@ -24,16 +24,54 @@ Nota: Qui genererai l'UUID univoco che servirà dopo.
 
 API CRUD Regali (Opzionale per ora): Se decidi di salvare i dati sul server man mano che l'utente scrive, ti servono endpoint per aggiungere/rimuovere regali. Se invece (come da requisiti "Bozza") salvi tutto alla fine, ti basta l'endpoint di creazione massiva.
 
-🧱 Milestone 2: Frontend - Gestione Bozza (LocalStorage)
-Obiettivo: Permettere all'utente di creare la lista senza internet (Bozza).
+🧱 Milestone 2: 2.1 🚀 Setup Iniziale e Stato Base
+Obiettivo: Definire i componenti React e lo stato iniziale per la lista dei desideri.
 
-UI Homepage & Form: Crea la pagina principale con il form di inserimento regalo (Nome, Link, Prezzo, Priorità).
+2.1.1 Creazione Componenti: Creare la struttura base dell'applicazione React (ad esempio, WishlistApp, GiftForm, GiftList).
 
-Logica LocalStorage: Implementa la logica React per salvare l'array dei regali nel localStorage del browser ogni volta che se ne aggiunge o modifica uno.
+2.1.2 Definizione Struttura Dati: Definire l'interfaccia o la struttura dell'oggetto "Regalo" (es. { id: uuid, name: string, price: number, link: string, priority: number }).
 
-Lista Regali (Draft View): Visualizza i regali salvati sotto il form, con possibilità di modificarli o eliminarli (agendo sullo stato locale e localStorage).
+2.1.3 Stato Locale (Base): Implementare lo stato React principale nell'applicazione (probabilmente un useState per l'array dei regali e uno per il titolo della lista) per gestire la lista in memoria.
 
-Validazione Client-side: Assicurati che non si possano inserire regali senza nome o prezzo.
+2.2 🎁 Creazione del Form e Logica di Aggiunta
+Obiettivo: Permettere all'utente di inserire nuovi regali e aggiungerli allo stato locale.
+
+2.2.1 Componente GiftForm: Creare il form con campi controllati per Nome, Link, Prezzo, e Priorità.
+
+2.2.2 Gestione Input: Collegare gli input allo stato locale del form.
+
+2.2.3 Validazione Client-side (Iniziale): Implementare la logica di validazione che impedisce l'invio se il Nome o il Prezzo sono mancanti/non validi.
+
+2.2.4 Logica di Aggiunta: Creare la funzione per aggiungere il nuovo oggetto "Regalo" allo stato dell'array dei regali principale (WishlistApp).
+
+2.3 📋 Visualizzazione e Funzionalità CRUD Locale
+Obiettivo: Mostrare la lista dei regali in memoria e permettere la modifica e l'eliminazione.
+
+2.3.1 Componente GiftList: Mappare l'array dei regali e visualizzare i dati in formato lista (Draft View).
+
+2.3.2 Funzione di Eliminazione: Creare una funzione che riceve l'ID di un regalo e filtra lo stato dell'array per rimuoverlo (Rimuovi).
+
+2.3.3 Funzione di Modifica (Toggle): Implementare un meccanismo che, cliccando su un regalo, passi dalla modalità di visualizzazione a una modalità di modifica inline (Modifica).
+
+2.3.4 Funzione di Modifica (Salvataggio): Creare la funzione che salva le modifiche allo stato dell'array quando l'utente termina la modifica di un singolo regalo (Update).
+
+2.4 💾 Persistenza con LocalStorage
+Obiettivo: Mantenere i dati della bozza persistenti tra le sessioni del browser.
+
+2.4.1 Hook useEffect per Salvataggio: Utilizzare l'hook useEffect per salvare l'intero array dei regali nel localStorage ogni volta che lo stato dell'array cambia.
+
+2.4.2 Hook useEffect per Caricamento: Utilizzare useEffect (con dependency array vuoto []) per leggere i dati dal localStorage all'avvio dell'applicazione e inizializzare lo stato React principale con questi dati.
+
+2.4.3 Gestione Reset: Creare un pulsante o una funzione per "Svuota lista/Nuova bozza" che pulisca sia lo stato React che la chiave nel localStorage.
+
+2.5 🔗 Miglioramenti UX e Pronto alla Pubblicazione
+Obiettivo: Aggiungere il pulsante di pubblicazione e preparare i dati per l'invio al backend.
+
+2.5.1 Visualizzazione Titolo: Aggiungere un campo di input per il Titolo della Wishlist e mantenerlo sincronizzato con lo stato e il localStorage.
+
+2.5.2 Pulsante Pubblica: Aggiungere un pulsante "Pubblica lista" che richiami una funzione di callback.
+
+2.5.3 Pre-Validazione Finale: Assicurarsi che il pulsante "Pubblica" sia disabilitato se la lista è vuota o se manca il titolo.
 
 🧱 Milestone 3: Pubblicazione Wishlist (Integrazione)
 Obiettivo: Spostare i dati dal LocalStorage al Database PostgreSQL.
@@ -81,13 +119,11 @@ Apri una Modale (o un prompt) per inserire il messaggio di auguri.
 Chiama l'API di prenotazione e aggiorna la UI al successo.
 
 🧱 Milestone 6: Rifiniture e Bonus
-Obiettivo: Migliorare l'esperienza utente e aggiungere le feature extra.
 
 UI/UX Polish: Controlla che tutto sia responsive su mobile (Mobile First).
 
-Feedback Utente: Aggiungi spinner di caricamento durante le chiamate API e messaggi toast per confermare le azioni (es. "Regalo aggiunto!", "Lista pubblicata!").
 
-Bonus Web Share API: Implementa il tasto "Condividi" nativo nella pagina di successo post-pubblicazione.
+Bonus Web Share API: Implementa il tasto "Condividi" nativo nella pagina di successo post-pubblicazione. (c'è già?)
 
 Bonus Liste Salvate (Opzionale): Implementa la pagina per vedere le liste create o salvate (richiede di salvare gli UUID nel localStorage o implementare un sistema utenti base).
 

@@ -11,9 +11,9 @@ class GiftController extends Controller
 {
     /**
      * Permette a un utente di prenotare un regalo specifico.
-     * Rotta: POST /api/public/gifts/{gift_id}/book
+     * Rotta: POST /api/gifts/{id}/book
      */
-    public function book(Request $request, $gift_id)
+    public function book(Request $request, $id)
     {
         try {
             DB::beginTransaction();
@@ -25,7 +25,7 @@ class GiftController extends Controller
             ]);
 
             // 2. Recupero del Regalo
-            $gift = Gift::findOrFail($gift_id);
+            $gift = Gift::findOrFail($id);
 
             // 3. Controllo Conflitto: È già prenotato?
             if ($gift->is_booked) {
@@ -38,7 +38,6 @@ class GiftController extends Controller
             // 4. Esecuzione della Prenotazione
             $gift->is_booked = true;
             $gift->booked_message = $request->input('booked_message', 'Regalo prenotato!');
-            $gift->booked_at = now(); 
             // Aggiungi qui: $gift->booked_by = $request->input('booked_name'); se raccogli il nome.
             $gift->save();
 
@@ -84,7 +83,6 @@ class GiftController extends Controller
             // 3. Annullamento della Prenotazione
             $gift->is_booked = false;
             $gift->booked_message = null;
-            $gift->booked_at = null; 
             // Aggiungi qui: $gift->booked_by = null;
             $gift->save();
 

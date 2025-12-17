@@ -86,12 +86,11 @@ class WishlistController extends Controller
             return [
                 'id' => $gift->id,
                 'name' => $gift->name,
-                'description' => $gift->description,
                 'price' => $gift->price,
                 'link' => $gift->link,
+                'priority' => $gift->priority,
                 'is_booked' => (bool) $gift->is_booked,
                 'booked_message' => $gift->booked_message, // Dettaglio Proprietario
-                'booked_at' => $gift->booked_at,
             ];
         });
 
@@ -107,33 +106,45 @@ class WishlistController extends Controller
 
     /**
      * Visualizza la wishlist in modalità pubblica (ospite, dati filtrati).
-     * Rotta: GET /api/public/{token}
+     * Rotta: GET /api/wishlist/{uuid}
      */
-    public function showPublicView($token)
+    public function showPublicView($uuid)
     {
-        // Cerca la Wishlist pubblicata
-        $wishlist = Wishlist::where('uuid', $token)
-                            ->where('is_published', true)
-                            ->firstOrFail();
+        try {
+            // Cerca la Wishlist pubblicata e carica esplicitamente i regali
+            $wishlist = Wishlist::with('gifts')
+                                ->where('uuid', $uuid)
+                                ->where('is_published', true)
+                                ->firstOrFail();
 
-        // Filtra i dati sensibili (nasconde chi ha prenotato, ecc.)
-        $gifts = $wishlist->gifts->map(function ($gift) {
-            return [
-                'id' => $gift->id,
-                'name' => $gift->name,
-                'price' => $gift->price,
-                'link' => $gift->link,
-                'priority' => $gift->priority,
-                // Mostra solo lo stato di prenotazione
-                'is_booked' => (bool) $gift->is_booked, 
-            ];
-        });
+            // Filtra i dati sensibili (nasconde chi ha prenotato, ecc.)
+            $gifts = $wishlist->gifts->map(function ($gift) {
+                return [
+                    'id' => $gift->id,
+                    'name' => $gift->name,
+                    'price' => $gift->price,
+                    'link' => $gift->link,
+                    'priority' => $gift->priority,
+                    // Mostra solo lo stato di prenotazione, senza dati sensibili
+                    'is_booked' => (bool) $gift->is_booked, 
+                ];
+            });
 
-        return response()->json([
-            'title' => $wishlist->title,
-            'owner_name' => $wishlist->owner_name,
-            'gifts' => $gifts,
-        ]);
+            return response()->json([
+                'title' => $wishlist->title,
+                'owner_name' => $wishlist->owner_name,
+                'gifts' => $gifts,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Wishlist non trovata o non pubblicata.'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Errore nel recupero della wishlist.',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

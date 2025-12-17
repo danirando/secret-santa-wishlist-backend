@@ -11,8 +11,6 @@ Route::prefix('wishlists')->group(function () {
     Route::get('/{token}', [WishlistController::class, 'showOwnerView']);
 });
 
-Route::prefix('public')->group(function () {
-    Route::get('/{token}', [WishlistController::class, 'showPublicView']);
-    Route::post('gifts/{gift_id}/book', [GiftController::class, 'book']);
-    Route::delete('gifts/{gift_id}/unbook', [GiftController::class, 'unbook']);
-});
+// Public routes for guests (Milestone 4)
+Route::get('/wishlist/{uuid}', [WishlistController::class, 'showPublicView']);
+Route::post('/gifts/{id}/book', [GiftController::class, 'book']);
